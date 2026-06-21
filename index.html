@@ -53,6 +53,7 @@
     border-bottom: 1px solid var(--border);
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 28px; height: 58px;
+    gap: 16px; flex-wrap: wrap;
   }
   .topbar-brand {
     display: flex; align-items: center; gap: 10px;
@@ -78,6 +79,19 @@
   }
   .nav-btn:hover, .nav-btn.active { background: var(--surface3); color: var(--text); }
   .nav-btn.active { color: var(--accent2); }
+
+  .topbar-user { display:flex; align-items:center; gap:10px; margin-left:auto; }
+  .topbar-user .tu-info { text-align:right; line-height:1.25; }
+  .topbar-user .tu-name { font-size:13px; font-weight:700; }
+  .topbar-user .tu-role { font-size:11px; color:var(--text-muted); }
+  .tu-btn {
+    background:none; border:1px solid var(--border2); cursor:pointer;
+    color:var(--text-muted); font-family:var(--font); font-size:12px;
+    padding:6px 11px; border-radius:99px; transition:all .2s; font-weight:600;
+    white-space:nowrap;
+  }
+  .tu-btn:hover { background:var(--surface3); color:var(--text); }
+  .tu-btn.danger:hover { background:rgba(217,45,32,.1); color:var(--red); border-color:rgba(217,45,32,.3); }
 
   .page { display: none; padding: 32px 28px; max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; }
   .page.active { display: block; }
@@ -122,7 +136,7 @@
   .field { display: flex; flex-direction: column; gap: 6px; }
   label { font-size: 13px; color: var(--text-soft); font-weight: 500; }
   label .req { color: var(--red); margin-left: 3px; }
-  input[type=text], input[type=number], select, textarea {
+  input[type=text], input[type=number], input[type=password], select, textarea {
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
@@ -235,7 +249,7 @@
   .progress-wrap { background: var(--surface3); border-radius: 99px; height: 8px; margin-top: 10px; overflow: hidden; }
   .progress-fill { height: 100%; border-radius: 99px; transition: width .5s ease; }
 
-  #toast { position: fixed; bottom: 28px; right: 28px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  #toast { position: fixed; bottom: 28px; right: 28px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; max-width: 360px; }
   .toast-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 18px; color: var(--text); font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 9px; box-shadow: 0 8px 24px rgba(16,24,40,.12); animation: slideIn .25s ease; min-width: 280px; }
   .toast-item.success { border-left: 3px solid var(--accent2); }
   .toast-item.error   { border-left: 3px solid var(--red); }
@@ -297,6 +311,33 @@
 
   .spinner { display:inline-block; width:16px; height:16px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .6s linear infinite; }
   @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ════ AUTH (LOGIN) SCREEN ════ */
+  .auth-screen {
+    display: none; position: fixed; inset: 0; z-index: 2000;
+    background: var(--bg); align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .auth-screen::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px; opacity: .5;
+  }
+  .auth-box {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 36px 32px; width: 380px; max-width: 100%;
+    box-shadow: 0 20px 50px rgba(16,24,40,.12);
+    position: relative; overflow: hidden; z-index: 1;
+  }
+  .auth-box::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--accent),var(--blue)); }
+  .auth-logo { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text-muted); margin-bottom:20px; }
+  .auth-logo .dot { width:9px; height:9px; border-radius:50%; background:var(--accent2); box-shadow:0 0 8px var(--accent2); }
+  .auth-box h2 { font-size: 19px; font-weight: 700; margin-bottom: 4px; }
+  .auth-box .auth-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 22px; }
+  .auth-error {
+    background: rgba(217,45,32,.08); border: 1px solid rgba(217,45,32,.3); color: var(--red);
+    font-size: 13px; padding: 9px 12px; border-radius: var(--radius-sm); margin-bottom: 14px;
+  }
 
   /* ════ CHECKLIST STYLES ════ */
   .cl-source-card {
@@ -385,12 +426,38 @@
     .stat-strip { grid-template-columns: 1fr; } .items-header { display:none; }
     .item-row { grid-template-columns: 1fr 1fr; gap:6px; padding:10px; }
     .cl-summary-strip { grid-template-columns: 1fr 1fr; }
+    .topbar-user .tu-info { display:none; }
   }
 </style>
 </head>
 <body>
 
 <datalist id="globalItemNames"></datalist>
+
+<!-- ════════════════════════ LOGIN SCREEN ════════════════════════ -->
+<div class="auth-screen" id="loginScreen" style="display:flex">
+  <div class="auth-box">
+    <div class="auth-logo"><span class="dot"></span>ระบบประเมินราคางานประมูล</div>
+    <h2>เข้าสู่ระบบ</h2>
+    <div class="auth-sub">กรอก username และ password ของคุณ</div>
+    <div class="auth-error" id="loginError" style="display:none"></div>
+    <div class="field" style="margin-bottom:14px">
+      <label>Username</label>
+      <input type="text" id="loginUsername" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+    </div>
+    <div class="field" style="margin-bottom:20px">
+      <label>Password</label>
+      <input type="password" id="loginPassword" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-primary" id="loginBtn" style="width:100%;justify-content:center" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:16px;text-align:center">เซสชันจะหมดอายุเมื่อปิดเบราว์เซอร์</p>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ════════════════════════ APP ROOT (hidden until logged in) ════════════════════════ -->
+<div id="appRoot" style="display:none">
 
 <nav class="topbar">
   <div class="topbar-brand">
@@ -402,9 +469,16 @@
     <button class="nav-btn" data-page="checklist" onclick="showPage('checklist',this)">✅ Checklist วัสดุ</button>
     <button class="nav-btn" data-page="history" onclick="showPage('history',this)">📂 ประวัติ</button>
   </div>
+  <div class="topbar-user">
+    <div class="tu-info">
+      <div class="tu-name" id="curUserName">—</div>
+      <div class="tu-role" id="curUserRole">—</div>
+    </div>
+    <button class="tu-btn" id="navManageUsers" style="display:none" onclick="openUsersModal()">👥 จัดการผู้ใช้</button>
+    <button class="tu-btn" onclick="openChangePasswordModal(false)">🔑 เปลี่ยนรหัสผ่าน</button>
+    <button class="tu-btn danger" onclick="doLogout()">🚪 ออกจากระบบ</button>
+  </div>
 </nav>
-
-<div id="toast"></div>
 
 <!-- ════════════════════════ FORM PAGE ════════════════════════ -->
 <div id="page-form" class="page active">
@@ -757,6 +831,69 @@
   </div>
 </div>
 
+<!-- ════════════════════════ CHANGE PASSWORD MODAL ════════════════════════ -->
+<div class="modal-backdrop" id="changePasswordModal">
+  <div class="modal" style="width:420px">
+    <div class="modal-title">
+      <span>🔑 เปลี่ยนรหัสผ่าน</span>
+      <button class="modal-close" id="cpCloseBtn" onclick="closeChangePasswordModal()">✕</button>
+    </div>
+    <p id="cpForceMsg" style="display:none;font-size:13px;color:var(--amber);background:rgba(176,122,10,.08);border:1px solid rgba(176,122,10,.3);padding:9px 12px;border-radius:var(--radius-sm);margin-bottom:14px">⚠️ บัญชีนี้ต้องเปลี่ยนรหัสผ่านก่อนใช้งานต่อ</p>
+    <div class="auth-error" id="cpError" style="display:none"></div>
+    <div class="field" style="margin-bottom:12px">
+      <label>รหัสผ่านเดิม (หรือรหัสผ่านชั่วคราว)</label>
+      <input type="password" id="cpOld">
+    </div>
+    <div class="field" style="margin-bottom:12px">
+      <label>รหัสผ่านใหม่ (อย่างน้อย 8 ตัวอักษร)</label>
+      <input type="password" id="cpNew">
+    </div>
+    <div class="field" style="margin-bottom:6px">
+      <label>ยืนยันรหัสผ่านใหม่</label>
+      <input type="password" id="cpConfirm">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-secondary" id="cpCancelBtn" onclick="closeChangePasswordModal()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="submitChangePassword()">บันทึกรหัสผ่านใหม่</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ USER MANAGEMENT MODAL (admin only) ════════════════════════ -->
+<div class="modal-backdrop" id="usersModal">
+  <div class="modal" style="width:720px">
+    <div class="modal-title">
+      <span>👥 จัดการผู้ใช้งาน</span>
+      <button class="modal-close" onclick="closeUsersModal()">✕</button>
+    </div>
+    <div class="card" style="margin-bottom:16px;padding:16px">
+      <div class="card-title" style="margin-bottom:12px">➕ เพิ่มผู้ใช้ใหม่</div>
+      <div class="grid-3">
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="nuUsername" placeholder="เช่น somchai">
+        </div>
+        <div class="field">
+          <label>ชื่อ-นามสกุล</label>
+          <input type="text" id="nuFullName" placeholder="เช่น สมชาย ใจดี">
+        </div>
+        <div class="field">
+          <label>สิทธิ์การใช้งาน</label>
+          <select id="nuRole">
+            <option value="staff">พนักงาน (staff)</option>
+            <option value="admin">ผู้ดูแลระบบ (admin)</option>
+          </select>
+        </div>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:8px">ระบบจะสุ่มรหัสผ่านชั่วคราวให้อัตโนมัติ และบังคับให้เปลี่ยนรหัสผ่านในการเข้าสู่ระบบครั้งแรก</p>
+      <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="submitAddUser()">เพิ่มผู้ใช้</button>
+    </div>
+    <div id="usersListWrap">
+      <p style="text-align:center;color:var(--text-muted);padding:20px 0"><span class="spinner"></span></p>
+    </div>
+  </div>
+</div>
+
 <!-- ════════════════════════ STATUS BAR ════════════════════════ -->
 <div id="calcStatusBar" class="status-idle">
   <div class="csb-left">
@@ -766,7 +903,16 @@
   <div class="csb-right" id="csbRight"></div>
 </div>
 
+</div><!-- /#appRoot -->
+
 <script>
+/* ══════════════════════════════════════════════════
+   CONFIG — ใส่ Web App URL ของ Apps Script (ลงท้ายด้วย /exec)
+══════════════════════════════════════════════════ */
+const CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbzWOW05VC5lRF65zLp0RsoWSlXJhlXhL00lmL5-fh2BNwWffpIIpNYQy1HvEXPn6Ug/exec', // <-- แก้ตรงนี้หลัง Deploy Web App
+};
+
 /* ══════════════════════════════════════════════════
    STATE
 ══════════════════════════════════════════════════ */
@@ -804,6 +950,226 @@ const BUILTIN_PRESETS = [
 ];
 
 /* ══════════════════════════════════════════════════
+   AUTH / API LAYER
+   - sessionStorage ใช้เก็บ token (หายอัตโนมัติเมื่อปิดแท็บ/เบราว์เซอร์
+     ตรงตามที่ต้องการ "ค้างสถานะจนกว่าจะปิดเบราว์เซอร์")
+   - ส่ง body เป็น string โดยไม่ตั้ง Content-Type เอง เพื่อให้เบราว์เซอร์ใช้
+     text/plain อัตโนมัติ (ไม่เข้าเงื่อนไข CORS preflight ที่ Apps Script
+     web app ไม่รองรับ)
+══════════════════════════════════════════════════ */
+function getToken() { return sessionStorage.getItem('authToken') || ''; }
+function getCurrentUser() {
+  try { return JSON.parse(sessionStorage.getItem('authUser') || '{}'); }
+  catch(e) { return {}; }
+}
+
+function apiCall(action, payload) {
+  if (!CONFIG.API_URL || CONFIG.API_URL.indexOf('YOUR_DEPLOYMENT_ID') !== -1) {
+    return Promise.reject(new Error('ยังไม่ได้ตั้งค่า CONFIG.API_URL ในไฟล์ index.html — กรุณาใส่ Web App URL ของ Apps Script'));
+  }
+  payload = payload || {};
+  const body = Object.assign({ action: action, token: getToken() }, payload);
+  return fetch(CONFIG.API_URL, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+  .then(r => {
+    if (!r.ok) throw new Error('เครือข่ายผิดพลาด (HTTP ' + r.status + ')');
+    return r.json();
+  })
+  .then(res => {
+    if (res && res.code === 401) {
+      handleSessionExpired();
+      return Promise.reject(new Error('SESSION_EXPIRED'));
+    }
+    return res;
+  });
+}
+
+function handleSessionExpired() {
+  sessionStorage.removeItem('authToken');
+  sessionStorage.removeItem('authUser');
+  showLoginScreen();
+  toast('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่', 'error');
+}
+
+function showLoginScreen() {
+  document.getElementById('appRoot').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+function doLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  if (!username || !password) {
+    errEl.textContent = 'กรุณากรอก username และ password';
+    errEl.style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> กำลังเข้าสู่ระบบ...';
+  apiCall('login', { username, password })
+    .then(res => {
+      btn.disabled = false;
+      btn.innerHTML = 'เข้าสู่ระบบ';
+      if (!res.success) {
+        errEl.textContent = res.error || 'เข้าสู่ระบบไม่สำเร็จ';
+        errEl.style.display = 'block';
+        return;
+      }
+      sessionStorage.setItem('authToken', res.token);
+      sessionStorage.setItem('authUser', JSON.stringify({ username: res.username, role: res.role, fullName: res.fullName }));
+      document.getElementById('loginPassword').value = '';
+      enterApp(res.mustChangePassword);
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.innerHTML = 'เข้าสู่ระบบ';
+      errEl.textContent = 'เชื่อมต่อไม่สำเร็จ: ' + err.message;
+      errEl.style.display = 'block';
+    });
+}
+
+function doLogout() {
+  apiCall('logout', {}).catch(()=>{}).finally(() => {
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('authUser');
+    location.reload();
+  });
+}
+
+function enterApp(forcePasswordChange) {
+  const user = getCurrentUser();
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appRoot').style.display = 'block';
+  document.getElementById('curUserName').textContent = user.fullName || user.username || '—';
+  document.getElementById('curUserRole').textContent = user.role === 'admin' ? 'ผู้ดูแลระบบ' : 'พนักงาน';
+  document.getElementById('navManageUsers').style.display = (user.role === 'admin') ? 'inline-flex' : 'none';
+  initAppData();
+  if (forcePasswordChange) openChangePasswordModal(true);
+}
+
+/* ══════════════════════════════════════════════════
+   CHANGE PASSWORD
+══════════════════════════════════════════════════ */
+function openChangePasswordModal(forced) {
+  document.getElementById('cpOld').value = '';
+  document.getElementById('cpNew').value = '';
+  document.getElementById('cpConfirm').value = '';
+  document.getElementById('cpError').style.display = 'none';
+  document.getElementById('cpForceMsg').style.display = forced ? 'block' : 'none';
+  document.getElementById('cpCloseBtn').style.display = forced ? 'none' : 'inline-block';
+  document.getElementById('cpCancelBtn').style.display = forced ? 'none' : 'inline-flex';
+  document.getElementById('changePasswordModal').classList.add('open');
+  document.getElementById('changePasswordModal').dataset.forced = forced ? '1' : '0';
+}
+function closeChangePasswordModal() {
+  if (document.getElementById('changePasswordModal').dataset.forced === '1') return; // บังคับเปลี่ยนรหัส ปิดไม่ได้
+  document.getElementById('changePasswordModal').classList.remove('open');
+}
+function submitChangePassword() {
+  const oldPassword = document.getElementById('cpOld').value;
+  const newPassword = document.getElementById('cpNew').value;
+  const confirm_ = document.getElementById('cpConfirm').value;
+  const errEl = document.getElementById('cpError');
+  errEl.style.display = 'none';
+  if (!oldPassword || !newPassword) { errEl.textContent='กรุณากรอกข้อมูลให้ครบ'; errEl.style.display='block'; return; }
+  if (newPassword.length < 8) { errEl.textContent='รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร'; errEl.style.display='block'; return; }
+  if (newPassword !== confirm_) { errEl.textContent='ยืนยันรหัสผ่านใหม่ไม่ตรงกัน'; errEl.style.display='block'; return; }
+  apiCall('changePassword', { oldPassword, newPassword })
+    .then(res => {
+      if (!res.success) { errEl.textContent = res.error||'เปลี่ยนรหัสผ่านไม่สำเร็จ'; errEl.style.display='block'; return; }
+      document.getElementById('changePasswordModal').dataset.forced = '0';
+      document.getElementById('changePasswordModal').classList.remove('open');
+      toast('เปลี่ยนรหัสผ่านสำเร็จ ✓','success');
+    })
+    .catch(err => { errEl.textContent = 'เกิดข้อผิดพลาด: '+err.message; errEl.style.display='block'; });
+}
+
+/* ══════════════════════════════════════════════════
+   USER MANAGEMENT (admin only)
+══════════════════════════════════════════════════ */
+function openUsersModal() {
+  document.getElementById('usersModal').classList.add('open');
+  refreshUsersList();
+}
+function closeUsersModal() { document.getElementById('usersModal').classList.remove('open'); }
+
+function refreshUsersList() {
+  const wrap = document.getElementById('usersListWrap');
+  wrap.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:20px 0"><span class="spinner"></span></p>';
+  apiCall('listUsers', {})
+    .then(res => {
+      if (!res.success) { wrap.innerHTML = '<p style="color:var(--red);text-align:center;padding:16px">'+escapeHtml(res.error)+'</p>'; return; }
+      renderUsersList(res.users || []);
+    })
+    .catch(err => { wrap.innerHTML = '<p style="color:var(--red);text-align:center;padding:16px">โหลดไม่สำเร็จ: '+escapeHtml(err.message)+'</p>'; });
+}
+
+function renderUsersList(users) {
+  const wrap = document.getElementById('usersListWrap');
+  if (!users.length) { wrap.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px 0">ยังไม่มีผู้ใช้</p>'; return; }
+  let html = '<div style="overflow-x:auto"><table class="hist-table"><thead><tr><th>Username</th><th>ชื่อ</th><th>สิทธิ์</th><th>สถานะ</th><th>Login ล่าสุด</th><th></th></tr></thead><tbody>';
+  users.forEach(u => {
+    const pill = u.status==='active' ? 'pill-green' : 'pill-red';
+    html += `<tr>
+      <td><strong>${escapeHtml(u.username)}</strong>${u.mustChangePassword?' <span class="cl-unit-tag">รอเปลี่ยนรหัส</span>':''}</td>
+      <td>${escapeHtml(u.fullName)}</td>
+      <td>${u.role==='admin'?'ผู้ดูแลระบบ':'พนักงาน'}</td>
+      <td><span class="pill ${pill}">${u.status==='active'?'ใช้งานอยู่':'ถูกระงับ'}</span></td>
+      <td style="font-size:12px;color:var(--text-muted)">${escapeHtml(u.lastLogin)||'—'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn-ghost btn-sm" onclick="adminResetPassword('${escapeHtml(u.username)}')">รีเซ็ตรหัส</button>
+        <button class="btn-ghost btn-sm" style="color:${u.status==='active'?'var(--red)':'var(--accent2)'}" onclick="adminToggleStatus('${escapeHtml(u.username)}','${u.status==='active'?'disabled':'active'}')">${u.status==='active'?'ระงับ':'เปิดใช้งาน'}</button>
+      </td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+}
+
+function submitAddUser() {
+  const newUsername = document.getElementById('nuUsername').value.trim();
+  const fullName = document.getElementById('nuFullName').value.trim();
+  const role = document.getElementById('nuRole').value;
+  if (!newUsername) { toast('กรุณากรอก username','error'); return; }
+  apiCall('addUser', { newUsername, fullName, role })
+    .then(res => {
+      if (!res.success) { toast(res.error,'error'); return; }
+      toast('เพิ่มผู้ใช้ "'+res.username+'" สำเร็จ — รหัสผ่านชั่วคราว: '+res.temporaryPassword+' (กรุณาคัดลอกไว้ทันที)', 'success', 15000);
+      document.getElementById('nuUsername').value = '';
+      document.getElementById('nuFullName').value = '';
+      refreshUsersList();
+    })
+    .catch(err => toast('เพิ่มผู้ใช้ไม่สำเร็จ: '+err.message,'error'));
+}
+
+function adminToggleStatus(username, status) {
+  if (!confirm((status==='disabled'?'ระงับการใช้งานของ ':'เปิดใช้งานของ ')+username+' ใช่ไหม?')) return;
+  apiCall('setUserStatus', { username, status })
+    .then(res => {
+      if (!res.success) { toast(res.error,'error'); return; }
+      toast('อัปเดตสถานะแล้ว','success');
+      refreshUsersList();
+    })
+    .catch(err => toast('ไม่สำเร็จ: '+err.message,'error'));
+}
+
+function adminResetPassword(username) {
+  if (!confirm('รีเซ็ตรหัสผ่านของ '+username+' ใช่ไหม? ระบบจะสุ่มรหัสผ่านใหม่ให้ทันที')) return;
+  apiCall('resetUserPassword', { username })
+    .then(res => {
+      if (!res.success) { toast(res.error,'error'); return; }
+      toast('รหัสผ่านใหม่ของ '+res.username+': '+res.temporaryPassword+' (กรุณาคัดลอกไว้ทันที)', 'success', 15000);
+      refreshUsersList();
+    })
+    .catch(err => toast('ไม่สำเร็จ: '+err.message,'error'));
+}
+
+/* ══════════════════════════════════════════════════
    UTILS
 ══════════════════════════════════════════════════ */
 function escapeHtml(s) {
@@ -818,14 +1184,9 @@ function fmtN(n) { return (parseFloat(n)||0).toLocaleString('th-TH',{minimumFrac
    PRESET NAMES
 ══════════════════════════════════════════════════ */
 function loadPresetNames() {
-  if (typeof google !== 'undefined') {
-    google.script.run
-      .withSuccessHandler(names => mergePresets((names||[]).filter(Boolean)))
-      .withFailureHandler(() => mergePresets([]))
-      .getPresetItems();
-  } else {
-    mergePresets([]);
-  }
+  apiCall('getPresetItems', {})
+    .then(res => mergePresets((res.success && res.items) ? res.items.filter(Boolean) : []))
+    .catch(() => mergePresets([]));
 }
 
 function mergePresets(fromSheet) {
@@ -1201,21 +1562,21 @@ function saveRecord() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
   const isUpdate = d.rowIndex > 1;
-  google.script.run
-    .withSuccessHandler(() => {
-      toast(isUpdate ? 'อัปเดตข้อมูลสำเร็จ ✓' : 'บันทึกข้อมูลสำเร็จ ✓', 'success');
+  apiCall('saveData', { data: d })
+    .then(res => {
       btn.disabled = false;
+      if (!res.success) { toast('เกิดข้อผิดพลาด: '+res.error,'error'); btn.innerHTML='<span>💾</span> บันทึกข้อมูล'; return; }
+      toast(isUpdate ? 'อัปเดตข้อมูลสำเร็จ ✓' : 'บันทึกข้อมูลสำเร็จ ✓', 'success');
       if (!isUpdate) { clearForm(); }
       else { setTimeout(() => { clearForm(); showPage('history'); }, 1200); }
       loadPresetNames();
       loadHistory();
     })
-    .withFailureHandler(err => {
+    .catch(err => {
       toast('เกิดข้อผิดพลาด: '+err.message,'error');
       btn.disabled = false;
       btn.innerHTML = '<span>💾</span> บันทึกข้อมูล';
-    })
-    .saveData(d);
+    });
 }
 
 /* ══════════════════════════════════════════════════
@@ -1228,19 +1589,10 @@ function saveRecord() {
 function loadChecklistProjects() {
   const list = document.getElementById('clProjectList');
   if (!allHistory.length) {
-    // ลอง load ถ้ายังไม่มี
-    if (typeof google !== 'undefined') {
-      list.innerHTML = '<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px 0"><span class="spinner"></span></p>';
-      google.script.run
-        .withSuccessHandler(rows => {
-          allHistory = rows || [];
-          renderChecklistProjectList();
-        })
-        .withFailureHandler(() => renderChecklistProjectList())
-        .getAllData();
-    } else {
-      renderChecklistProjectList();
-    }
+    list.innerHTML = '<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px 0"><span class="spinner"></span></p>';
+    apiCall('getAllData', {})
+      .then(res => { allHistory = (res.success && res.data) ? res.data : []; renderChecklistProjectList(); })
+      .catch(() => renderChecklistProjectList());
   } else {
     renderChecklistProjectList();
   }
@@ -1279,7 +1631,6 @@ function loadProjectToChecklist(rowIndex) {
     site: rec.siteName||'',
     months: parseFloat(rec.contractMonths)||1,
   };
-  // แปลง items เป็น clRows
   clRows = items
     .filter(it => it.name)
     .map((it, i) => ({
@@ -1287,7 +1638,7 @@ function loadProjectToChecklist(rowIndex) {
       name: it.name,
       unit: it.durable ? 'ชิ้น' : 'หน่วย',
       required: it.qty || 0,
-      onHand: '',         // หัวหน้างานกรอก
+      onHand: '',
       note: '',
       isDurable: it.durable,
     }));
@@ -1302,7 +1653,6 @@ function startManualChecklist() {
   clProjectMeta = { name, site, months: 1 };
   clRows = [];
   openChecklistArea();
-  // เพิ่มรายการตั้งต้น 3 บรรทัด
   addClRow(); addClRow(); addClRow();
 }
 
@@ -1313,7 +1663,6 @@ function openChecklistArea() {
   document.getElementById('clCardTitle').textContent =
     clProjectMeta.name + (clProjectMeta.site ? ' — ' + clProjectMeta.site : '');
   document.getElementById('clBadge').textContent = clProjectMeta.name;
-  // อัปเดต print header
   document.getElementById('printProjectTitle').textContent = clProjectMeta.name;
   document.getElementById('printProjectSub').textContent =
     (clProjectMeta.site ? clProjectMeta.site + ' · ' : '') + 'ระยะเวลา ' + clProjectMeta.months + ' เดือน';
@@ -1405,7 +1754,6 @@ function renderClTable() {
   updateClSummary();
 }
 
-/* re-render แค่แถวเดียว (เพื่อให้ status เปลี่ยนทันทีขณะพิมพ์) */
 function rerenderClRow(id) {
   const r = clRows.find(x => x.id === id);
   if (!r) return;
@@ -1439,7 +1787,6 @@ function addClRow() {
   const newId = clRows.length ? Math.max(...clRows.map(r=>r.id)) + 1 : 1;
   clRows.push({ id: newId, name:'', unit:'หน่วย', required:0, onHand:'', note:'', isDurable:false });
   renderClTable();
-  // โฟกัส input ชื่อแถวใหม่
   setTimeout(() => {
     const tr = document.getElementById('clrow-'+newId);
     if (tr) tr.querySelector('input')?.focus();
@@ -1458,15 +1805,8 @@ function resetChecklist() {
   toast('รีเซ็ตแล้ว','info');
 }
 
-function filterOnlyShort() {
-  clFilterMode = 'short';
-  renderClTable();
-}
-
-function filterAll() {
-  clFilterMode = 'all';
-  renderClTable();
-}
+function filterOnlyShort() { clFilterMode = 'short'; renderClTable(); }
+function filterAll() { clFilterMode = 'all'; renderClTable(); }
 
 /* ── summary ── */
 function updateClSummary() {
@@ -1486,7 +1826,6 @@ function updateClSummary() {
 
 /* ── พิมพ์ ── */
 function printChecklist() {
-  // sync clRows จาก DOM ก่อน (onhand อาจถูกพิมพ์ผ่าน input แต่ยังไม่ fire onchange)
   document.querySelectorAll('[id^="clrow-"]').forEach(tr => {
     const id = parseInt(tr.id.replace('clrow-',''));
     const r  = clRows.find(x => x.id === id);
@@ -1522,7 +1861,6 @@ function exportClCSV() {
 
 /* ── บันทึก Checklist ลง Sheet ── */
 function saveChecklist() {
-  if (typeof google === 'undefined') { toast('ฟีเจอร์นี้ต้องรันบน Google Apps Script','error'); return; }
   const payload = {
     projectName: clProjectMeta.name,
     siteName: clProjectMeta.site,
@@ -1536,17 +1874,18 @@ function saveChecklist() {
       note: r.note,
     }))
   };
-  google.script.run
-    .withSuccessHandler(() => toast('บันทึก Checklist ลง Sheet แล้ว ✓','success'))
-    .withFailureHandler(err => toast('บันทึกไม่สำเร็จ: '+err.message,'error'))
-    .saveChecklist(payload);
+  apiCall('saveChecklist', { payload })
+    .then(res => {
+      if (!res.success) { toast('บันทึกไม่สำเร็จ: '+res.error,'error'); return; }
+      toast('บันทึก Checklist ลง Sheet แล้ว ✓','success');
+    })
+    .catch(err => toast('บันทึกไม่สำเร็จ: '+err.message,'error'));
 }
 
 /* เปิด modal แล้วกด "สร้าง Checklist" */
 function loadToChecklist() {
   closeModal();
   showPage('checklist');
-  // เล็กน้อย delay ให้ page render ก่อน
   setTimeout(() => loadProjectToChecklist(currentRowIndex), 100);
 }
 
@@ -1556,13 +1895,19 @@ function loadToChecklist() {
 function loadHistory() {
   document.getElementById('historyTableWrap').innerHTML =
     '<p style="color:var(--text-muted);text-align:center;padding:40px 0"><span class="spinner"></span> กำลังโหลด...</p>';
-  google.script.run
-    .withSuccessHandler(renderHistory)
-    .withFailureHandler(err => {
-      document.getElementById('historyTableWrap').innerHTML =
-        '<p style="color:var(--red);text-align:center;padding:30px">โหลดข้อมูลไม่สำเร็จ: '+err.message+'</p>';
+  apiCall('getAllData', {})
+    .then(res => {
+      if (!res.success) {
+        document.getElementById('historyTableWrap').innerHTML =
+          '<p style="color:var(--red);text-align:center;padding:30px">โหลดข้อมูลไม่สำเร็จ: '+escapeHtml(res.error)+'</p>';
+        return;
+      }
+      renderHistory(res.data || []);
     })
-    .getAllData();
+    .catch(err => {
+      document.getElementById('historyTableWrap').innerHTML =
+        '<p style="color:var(--red);text-align:center;padding:30px">โหลดข้อมูลไม่สำเร็จ: '+escapeHtml(err.message)+'</p>';
+    });
 }
 
 function renderHistory(rows) {
@@ -1689,15 +2034,15 @@ function deleteRecord() {
   const id = parseInt(currentRowIndex);
   if (!id || id < 2) { toast('ไม่พบ rowIndex ที่จะลบ','error'); return; }
   if (!confirm('ยืนยันการลบรายการ (sheet row '+id+') ?')) return;
-  google.script.run
-    .withSuccessHandler(()=>{ toast('ลบข้อมูลสำเร็จ','success'); closeModal(); loadHistory(); })
-    .withFailureHandler(err=>toast('ลบไม่สำเร็จ: '+err.message,'error'))
-    .deleteData(id);
+  apiCall('deleteData', { rowIndex: id })
+    .then(res => {
+      if (!res.success) { toast('ลบไม่สำเร็จ: '+res.error,'error'); return; }
+      toast('ลบข้อมูลสำเร็จ','success'); closeModal(); loadHistory();
+    })
+    .catch(err => toast('ลบไม่สำเร็จ: '+err.message,'error'));
 }
 
-function closeModal() {
-  document.getElementById('detailModal').classList.remove('open');
-}
+function closeModal() { document.getElementById('detailModal').classList.remove('open'); }
 
 /* ══════════════════════════════════════════════════
    HELPERS
@@ -1731,33 +2076,47 @@ function clearForm() {
   setCalcStatus(0,0,0,0,1,0);
 }
 
-function toast(msg, type='info') {
+function toast(msg, type='info', duration=3800) {
   const wrap = document.getElementById('toast');
   const el   = document.createElement('div');
   el.className = 'toast-item '+type;
   const icons = {success:'✅',error:'❌',info:'ℹ️'};
-  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span>${msg}`;
+  el.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
   wrap.appendChild(el);
-  setTimeout(()=>el.remove(), 3800);
+  setTimeout(()=>el.remove(), duration);
 }
 
 /* ══════════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════════ */
-window.addEventListener('DOMContentLoaded', ()=>{
+function initAppData() {
+  document.getElementById('itemsContainer').innerHTML = '';
+  itemCount = 0;
   addItem('น้ำยาทำความสะอาดพื้น', 250, 10, false, 'month');
   addItem('ถุงขยะ (แพ็ค)', 120, 8, false, 'month');
   recalc();
   loadPresetNames();
   loadHistory();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const token = sessionStorage.getItem('authToken');
+  if (!token) { showLoginScreen(); return; }
+  apiCall('verifySession', {})
+    .then(res => {
+      if (res.success) {
+        sessionStorage.setItem('authUser', JSON.stringify({ username: res.username, role: res.role, fullName: res.fullName }));
+        enterApp(false);
+      } else {
+        showLoginScreen();
+      }
+    })
+    .catch(() => showLoginScreen());
 });
 
-document.getElementById('detailModal').addEventListener('click', function(e){
-  if (e.target===this) closeModal();
-});
-document.getElementById('quickAddModal').addEventListener('click', function(e){
-  if (e.target===this) closeQuickAdd();
-});
+document.getElementById('detailModal').addEventListener('click', function(e){ if (e.target===this) closeModal(); });
+document.getElementById('quickAddModal').addEventListener('click', function(e){ if (e.target===this) closeQuickAdd(); });
+document.getElementById('usersModal').addEventListener('click', function(e){ if (e.target===this) closeUsersModal(); });
 </script>
 </body>
 </html>
