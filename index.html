@@ -2117,6 +2117,66 @@ window.addEventListener('DOMContentLoaded', () => {
 document.getElementById('detailModal').addEventListener('click', function(e){ if (e.target===this) closeModal(); });
 document.getElementById('quickAddModal').addEventListener('click', function(e){ if (e.target===this) closeQuickAdd(); });
 document.getElementById('usersModal').addEventListener('click', function(e){ if (e.target===this) closeUsersModal(); });
+
+function doLogin() {
+  const userField = document.getElementById('loginUsername');
+  const passField = document.getElementById('loginPassword');
+  const errorDiv  = document.getElementById('loginError');
+  const loginBtn  = document.getElementById('loginBtn');
+  
+  const username = userField.value.trim();
+  const password = passField.value;
+
+  // วาลิดเดชันเบื้องต้น
+  if (!username || !password) {
+    errorDiv.textContent = "กรุณากรอกข้อมูลให้ครบถ้วน";
+    errorDiv.style.display = "block";
+    return;
+  }
+
+  // เปลี่ยนสถานะปุ่มระว่างรอระบบตรวจสอบ
+  loginBtn.disabled = true;
+  loginBtn.textContent = "กำลังตรวจสอบ...";
+  errorDiv.style.display = "none";
+
+  // ส่งข้อมูลไปตรวจที่ Code.gs
+  google.script.run
+    .withSuccessHandler(function(response) {
+      loginBtn.disabled = false;
+      loginBtn.textContent = "เข้าสู่ระบบ";
+
+      if (response.success) {
+        // ถ้ารหัสถูก ให้ซ่อนหน้าล็อกอิน
+        document.getElementById('loginScreen').style.display = 'none';
+        
+        // 💡 [คำแนะนำเพิ่มเติม] 
+        // ถ้าคุณมีหน้า Dashboard หลัก (เช่น id="mainScreen") ให้สั่งเปิดตรงนี้ได้เลย:
+        // document.getElementById('mainScreen').style.display = 'block';
+        
+        // เรียกฟังก์ชันโหลดข้อมูลประมูลมาแสดงผลต่อทันที
+        if (typeof getAllData === 'function') {
+          getAllData(); 
+        } else {
+          // หรือเรียกชื่อฟังก์ชันโหลดข้อมูลหลักที่คุณตั้งไว้ในระบบของคุณ
+          google.script.run.withSuccessHandler(renderData).getAllData();
+        }
+
+      } else {
+        // ถ้ารหัสผิด ให้แสดง Error Message
+        errorDiv.textContent = response.message;
+        errorDiv.style.display = "block";
+        passField.value = ""; // เคลียร์รหัสผ่านทิ้ง
+        passField.focus();
+      }
+    })
+    .withFailureHandler(function(err) {
+      loginBtn.disabled = false;
+      loginBtn.textContent = "เข้าสู่ระบบ";
+      errorDiv.textContent = "เกิดข้อผิดพลาดในการเชื่อมต่อระบบ: " + err.message;
+      errorDiv.style.display = "block";
+    })
+    .checkLoginCredentials(username, password);
+}
 </script>
 </body>
 </html>
