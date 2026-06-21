@@ -998,41 +998,6 @@ function showLoginScreen() {
   document.getElementById('loginScreen').style.display = 'flex';
 }
 
-function doLogin() {
-  const username = document.getElementById('loginUsername').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  const errEl = document.getElementById('loginError');
-  errEl.style.display = 'none';
-  if (!username || !password) {
-    errEl.textContent = 'กรุณากรอก username และ password';
-    errEl.style.display = 'block';
-    return;
-  }
-  const btn = document.getElementById('loginBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> กำลังเข้าสู่ระบบ...';
-  apiCall('login', { username, password })
-    .then(res => {
-      btn.disabled = false;
-      btn.innerHTML = 'เข้าสู่ระบบ';
-      if (!res.success) {
-        errEl.textContent = res.error || 'เข้าสู่ระบบไม่สำเร็จ';
-        errEl.style.display = 'block';
-        return;
-      }
-      sessionStorage.setItem('authToken', res.token);
-      sessionStorage.setItem('authUser', JSON.stringify({ username: res.username, role: res.role, fullName: res.fullName }));
-      document.getElementById('loginPassword').value = '';
-      enterApp(res.mustChangePassword);
-    })
-    .catch(err => {
-      btn.disabled = false;
-      btn.innerHTML = 'เข้าสู่ระบบ';
-      errEl.textContent = 'เชื่อมต่อไม่สำเร็จ: ' + err.message;
-      errEl.style.display = 'block';
-    });
-}
-
 function doLogout() {
   apiCall('logout', {}).catch(()=>{}).finally(() => {
     sessionStorage.removeItem('authToken');
