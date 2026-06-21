@@ -998,6 +998,41 @@ function showLoginScreen() {
   document.getElementById('loginScreen').style.display = 'flex';
 }
 
+function doLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  if (!username || !password) {
+    errEl.textContent = 'กรุณากรอก username และ password';
+    errEl.style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> กำลังเข้าสู่ระบบ...';
+  apiCall('login', { username, password })
+    .then(res => {
+      btn.disabled = false;
+      btn.innerHTML = 'เข้าสู่ระบบ';
+      if (!res.success) {
+        errEl.textContent = res.error || 'เข้าสู่ระบบไม่สำเร็จ';
+        errEl.style.display = 'block';
+        return;
+      }
+      sessionStorage.setItem('authToken', res.token);
+      sessionStorage.setItem('authUser', JSON.stringify({ username: res.username, role: res.role, fullName: res.fullName }));
+      document.getElementById('loginPassword').value = '';
+      enterApp(res.mustChangePassword);
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.innerHTML = 'เข้าสู่ระบบ';
+      errEl.textContent = 'เชื่อมต่อไม่สำเร็จ: ' + err.message;
+      errEl.style.display = 'block';
+    });
+}
+
 function doLogout() {
   apiCall('logout', {}).catch(()=>{}).finally(() => {
     sessionStorage.removeItem('authToken');
@@ -2082,66 +2117,6 @@ window.addEventListener('DOMContentLoaded', () => {
 document.getElementById('detailModal').addEventListener('click', function(e){ if (e.target===this) closeModal(); });
 document.getElementById('quickAddModal').addEventListener('click', function(e){ if (e.target===this) closeQuickAdd(); });
 document.getElementById('usersModal').addEventListener('click', function(e){ if (e.target===this) closeUsersModal(); });
-
-function doLogin() {
-  const userField = document.getElementById('loginUsername');
-  const passField = document.getElementById('loginPassword');
-  const errorDiv  = document.getElementById('loginError');
-  const loginBtn  = document.getElementById('loginBtn');
-  
-  const username = userField.value.trim();
-  const password = passField.value;
-
-  // วาลิดเดชันเบื้องต้น
-  if (!username || !password) {
-    errorDiv.textContent = "กรุณากรอกข้อมูลให้ครบถ้วน";
-    errorDiv.style.display = "block";
-    return;
-  }
-
-  // เปลี่ยนสถานะปุ่มระว่างรอระบบตรวจสอบ
-  loginBtn.disabled = true;
-  loginBtn.textContent = "กำลังตรวจสอบ...";
-  errorDiv.style.display = "none";
-
-  // ส่งข้อมูลไปตรวจที่ Code.gs
-  google.script.run
-    .withSuccessHandler(function(response) {
-      loginBtn.disabled = false;
-      loginBtn.textContent = "เข้าสู่ระบบ";
-
-      if (response.success) {
-        // ถ้ารหัสถูก ให้ซ่อนหน้าล็อกอิน
-        document.getElementById('loginScreen').style.display = 'none';
-        
-        // 💡 [คำแนะนำเพิ่มเติม] 
-        // ถ้าคุณมีหน้า Dashboard หลัก (เช่น id="mainScreen") ให้สั่งเปิดตรงนี้ได้เลย:
-        // document.getElementById('mainScreen').style.display = 'block';
-        
-        // เรียกฟังก์ชันโหลดข้อมูลประมูลมาแสดงผลต่อทันที
-        if (typeof getAllData === 'function') {
-          getAllData(); 
-        } else {
-          // หรือเรียกชื่อฟังก์ชันโหลดข้อมูลหลักที่คุณตั้งไว้ในระบบของคุณ
-          google.script.run.withSuccessHandler(renderData).getAllData();
-        }
-
-      } else {
-        // ถ้ารหัสผิด ให้แสดง Error Message
-        errorDiv.textContent = response.message;
-        errorDiv.style.display = "block";
-        passField.value = ""; // เคลียร์รหัสผ่านทิ้ง
-        passField.focus();
-      }
-    })
-    .withFailureHandler(function(err) {
-      loginBtn.disabled = false;
-      loginBtn.textContent = "เข้าสู่ระบบ";
-      errorDiv.textContent = "เกิดข้อผิดพลาดในการเชื่อมต่อระบบ: " + err.message;
-      errorDiv.style.display = "block";
-    })
-    .checkLoginCredentials(username, password);
-}
 </script>
 </body>
 </html>
