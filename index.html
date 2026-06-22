@@ -2090,11 +2090,7 @@ function toast(msg, type='info', duration=3800) {
    INIT
 ══════════════════════════════════════════════════ */
 function initAppData() {
-  document.getElementById('itemsContainer').innerHTML = '';
-  itemCount = 0;
-  addItem('น้ำยาทำความสะอาดพื้น', 250, 10, false, 'month');
-  addItem('ถุงขยะ (แพ็ค)', 120, 8, false, 'month');
-  recalc();
+  clearForm();   // ← เคลียร์ฟอร์มให้ว่างทุกครั้งที่เข้าระบบ (เดิมมี addItem ตัวอย่าง 2 รายการ)
   loadPresetNames();
   loadHistory();
 }
